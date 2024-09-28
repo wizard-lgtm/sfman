@@ -1,6 +1,7 @@
 #include<SDL2/SDL.h>
 #include "fops.h"
 #include "color.h"
+#include<SDL2/SDL_ttf.h>
 
 #define WINDOW_W 400
 #define WINDOW_H 600
@@ -15,6 +16,7 @@ int running;
 char** entries;
 char* current_dir; 
 Uint32 colors_dark[];
+TTF_Font* font;
 
 void update_window(){
     SDL_UpdateWindowSurface(window);
@@ -52,12 +54,12 @@ void trackbar_hover(SDL_Rect* rect){
 }
 
 void list_entry_hover(SDL_Rect* rect){
-    SDL_FillRect(surface, rect, colors_dark[COLOR_PURPLE]);
+    SDL_FillRect(surface, rect, parse_hex_color("#252525"));
 }
 ///
 /// Draws entry
 ///
-SDL_Rect draw_list_entry(int x, int y, Uint32 color){
+SDL_Rect draw_list_entry(int x, int y, Uint32 color, char* text){
     int w = WINDOW_W;
     int h = 25;
     SDL_Rect rect;
@@ -69,6 +71,15 @@ SDL_Rect draw_list_entry(int x, int y, Uint32 color){
     SDL_FillRect(surface, &rect, color);
 
     handle_hover_rect(&rect, list_entry_hover);
+
+        // Render the text
+    SDL_Color textColor = {0, 0, 0}; // Black text
+    SDL_Surface* textSurface = TTF_RenderText_Solid(font, text, textColor);
+    if (textSurface) {
+        SDL_Rect textRect = {x + 10, y + (h - textSurface->h) / 2, textSurface->w, textSurface->h}; // Center text vertically
+        SDL_BlitSurface(textSurface, NULL, surface, &textRect);
+        SDL_FreeSurface(textSurface);
+    }
 
 
     return rect;
@@ -88,7 +99,7 @@ SDL_Rect draw_list(char** list){
     
     
 
-    SDL_FillRect(surface, &list_widget, parse_hex_color("#f7f7f7"));
+    SDL_FillRect(surface, &list_widget, parse_hex_color("#d3d3d3"));
 
 
     for (int i = 0; list[i] != NULL; i++) {
@@ -99,8 +110,13 @@ SDL_Rect draw_list(char** list){
         x = PADDING;
 
         Uint32 color;
-        color = parse_hex_color("#f7f7f7");
-        draw_list_entry(x, y, color);
+        if(i % 2 == 0){
+            color = parse_hex_color("#6c7a89");
+        }else{
+            color = parse_hex_color("#bdc3c7");
+        }
+     
+        draw_list_entry(x, y, color, list[i]);
     }
 
 
@@ -114,7 +130,7 @@ SDL_Rect draw_background(){
     bg.x = 0;
     bg.y = 0;
 
-    SDL_FillRect(surface, &bg, parse_hex_color("#fafafa"));
+    SDL_FillRect(surface, &bg, parse_hex_color("#d3d3d3"));
 }
 
 char* change_dir(char* current_dir, char* new_dir){
@@ -125,6 +141,12 @@ void init_sdl(){
     // Init sdl
     SDL_Init(SDL_INIT_VIDEO);
     running = 1;
+
+    font = TTF_OpenFont("path/to/your/font.ttf", 16); // 16 is font size
+    if (!font) {
+        printf("Failed to load font: %s\n", TTF_GetError());
+        exit(1);
+    }
 
     // Init window 
     window =  SDL_CreateWindow("silly file manager", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_W, WINDOW_H, SDL_WINDOW_OPENGL);
