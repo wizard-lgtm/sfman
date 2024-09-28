@@ -1,5 +1,7 @@
 #include<SDL2/SDL.h>
 
+#define PADDING 10
+
 /// 
 /// Draws entry
 ///
@@ -9,7 +11,39 @@ void draw_list_entry(){
 /// 
 /// Draws list for dir entries
 ///
-void draw_list(){
+void draw_list(SDL_Surface* surface, int window_w, int window_h){
+    // declare list 
+    int border_size = 10;
+    SDL_Rect list_widget;
+    list_widget.h = window_h / 2 ;
+    list_widget.w = window_h / 2;
+    list_widget.x = border_size + PADDING;
+    list_widget.y = border_size + PADDING;
+
+
+    // declare border
+    SDL_Rect border;
+    list_widget.h = 200 - PADDING;
+    list_widget.w = 200 - PADDING;
+    list_widget.x = 0;
+    list_widget.y = 0;
+    
+
+    // Declare colors 
+    SDL_Color fg_color = {127,13,10};
+    SDL_Color border_color = {255, 255, 255};
+
+    Uint32 fg_mapped = SDL_MapRGB(surface->format, fg_color.r, fg_color.g, fg_color.b);
+    Uint32 border_mapped = SDL_MapRGB(surface->format, border_color.r, border_color.g, border_color.b);
+
+
+
+    // Draw border
+    SDL_FillRect(surface, &border, border_mapped);
+
+    // Draw widget
+   
+
 
 }
 
@@ -32,17 +66,8 @@ void root(){
     
     SDL_Surface* surface = SDL_GetWindowSurface(window);
 
-    SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 0xFF, 0xFF, 0xFF));
+    draw_list(surface, w, h);
 
-    SDL_UpdateWindowSurface(window);
-
-    SDL_Rect rect;
-    rect.h = 200;
-    rect.w = 300;
-    rect.x = (x - rect.w) / 2;
-    rect.y = (y - rect.y) / 2;
-
-    SDL_FillRect(surface, &rect, SDL_MapRGB(surface->format, 0xAA, 0xAB, 0xAC));
     SDL_UpdateWindowSurface(window);
 
     SDL_Event event;
