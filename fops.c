@@ -59,7 +59,7 @@ int dir_entries_count(DIR* dir){
 
 }
 
-char** list_dir_entries(const char* dir_path) {
+char** list_dir_entries(char* dir_path) {
     DIR* dir = opendir(dir_path);
     if (dir == NULL) {
         perror("Failed to open directory");
