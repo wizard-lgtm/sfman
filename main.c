@@ -18,11 +18,10 @@ int main(){
         printf("Entry %d: %s\n", i + 1, list[i]);
     }
 
-    // Don't forget to free the memory
     for (int i = 0; list[i] != NULL; i++) {
-        free(list[i]);
+        free(list[i]); // Correctly free each entry
     }
-    free(list);
+    free(list); // Finally, free the list itself
     root();
     return 0;
 }
