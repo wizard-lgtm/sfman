@@ -1,9 +1,10 @@
 #include<SDL2/SDL.h>
 #include "fops.h"
+#include "color.h"
 
 #define WINDOW_W 400
 #define WINDOW_H 600
-#define PADDING 5
+#define PADDING 0
 #define BG_R 0xFF
 #define BG_G 0xFF
 #define BG_B 0xFF
@@ -13,34 +14,7 @@ SDL_Window* window;
 int running;
 char** entries;
 char* current_dir; 
-
-typedef enum {
-    COLOR_PASTEL_BLUE,
-    COLOR_GRAY,
-    COLOR_WHITE,
-    COLOR_BLACK,
-    COLOR_RED,
-    COLOR_GREEN,
-    COLOR_YELLOW,
-    COLOR_ORANGE,
-    COLOR_PURPLE,
-    COLOR_TOTAL // track number of colors
-} ColorPaletteDark;
-
-Uint32 colors_dark[COLOR_TOTAL];
-
-void initialize_colors(SDL_Surface* surface) {
-    // Initialize colors using SDL_MapRGB
-    colors_dark[COLOR_PASTEL_BLUE] = SDL_MapRGB(surface->format, 0xA7, 0xC7, 0xE7);
-    colors_dark[COLOR_GRAY] = SDL_MapRGB(surface->format, 0x72, 0x72, 0x72);   // Fixed the gray color value
-    colors_dark[COLOR_WHITE] = SDL_MapRGB(surface->format, 0xFF, 0xFF, 0xFF);
-    colors_dark[COLOR_BLACK] = SDL_MapRGB(surface->format, 0x00, 0x00, 0x00);
-    colors_dark[COLOR_RED] = SDL_MapRGB(surface->format, 0xFF, 0x00, 0x00);
-    colors_dark[COLOR_GREEN] = SDL_MapRGB(surface->format, 0x00, 0xFF, 0x00);
-    colors_dark[COLOR_YELLOW] = SDL_MapRGB(surface->format, 0xFF, 0xFF, 0x00);
-    colors_dark[COLOR_ORANGE] = SDL_MapRGB(surface->format, 0xFF, 0xA5, 0x00);
-    colors_dark[COLOR_PURPLE] = SDL_MapRGB(surface->format, 0x80, 0x00, 0x80);
-}
+Uint32 colors_dark[];
 
 void update_window(){
     SDL_UpdateWindowSurface(window);
@@ -83,16 +57,16 @@ void list_entry_hover(SDL_Rect* rect){
 ///
 /// Draws entry
 ///
-SDL_Rect draw_list_entry(int x, int y){
-    int w = WINDOW_W - 50;
-    int h = 50;
+SDL_Rect draw_list_entry(int x, int y, Uint32 color){
+    int w = WINDOW_W;
+    int h = 25;
     SDL_Rect rect;
     rect.w = w;
     rect.h = h;
     rect.x = x;
     rect.y = y;
 
-    SDL_FillRect(surface, &rect, colors_dark[COLOR_WHITE]);
+    SDL_FillRect(surface, &rect, color);
 
     handle_hover_rect(&rect, list_entry_hover);
 
@@ -107,25 +81,26 @@ SDL_Rect draw_list(char** list){
     int border_size = 10;
     SDL_Rect list_widget;
 
-    list_widget.h = WINDOW_H - PADDING * 2;
-    list_widget.w = WINDOW_W - PADDING * 2;
+    list_widget.h = WINDOW_H;
+    list_widget.w = WINDOW_W;
     list_widget.x = PADDING;
     list_widget.y = PADDING;
     
     
 
-    SDL_FillRect(surface, &list_widget, colors_dark[COLOR_ORANGE]);
+    SDL_FillRect(surface, &list_widget, parse_hex_color("#f7f7f7"));
 
 
     for (int i = 0; list[i] != NULL; i++) {
         int y;
         int x;
-        if(i == 0) y = PADDING + 5;
-        else y = i * 75 + 5;
-        x = PADDING + 20;
+        if(i == 0) y = PADDING;
+        else y = i * 25;
+        x = PADDING;
 
-        printf("Entry %d: %s\n", i + 1, list[i]);
-        draw_list_entry(x, y);
+        Uint32 color;
+        color = parse_hex_color("#f7f7f7");
+        draw_list_entry(x, y, color);
     }
 
 
@@ -139,7 +114,7 @@ SDL_Rect draw_background(){
     bg.x = 0;
     bg.y = 0;
 
-    SDL_FillRect(surface, &bg, colors_dark[COLOR_WHITE]);
+    SDL_FillRect(surface, &bg, parse_hex_color("#fafafa"));
 }
 
 char* change_dir(char* current_dir, char* new_dir){
