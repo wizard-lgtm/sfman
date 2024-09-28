@@ -4,7 +4,7 @@
 #include <window.h>
 int main(){
     const char* fpath = "./test.txt";
-    const char* dir_path = ".";
+    char* dir_path = ".";
     char* file_contents = read_file_to_buffer(fpath);
     if(file_contents==NULL){
         return 1;
