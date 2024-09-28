@@ -10,6 +10,9 @@
 
 SDL_Surface* surface;
 SDL_Window* window;
+int running;
+char** entries;
+char* current_dir; 
 
 typedef enum {
     COLOR_PASTEL_BLUE,
@@ -39,40 +42,8 @@ void initialize_colors(SDL_Surface* surface) {
     colors_dark[COLOR_PURPLE] = SDL_MapRGB(surface->format, 0x80, 0x00, 0x80);
 }
 
-/// Draws entry
-///
-void draw_list_entry(int x, int y){
-    int w = WINDOW_W - 50;
-    int h = 50;
-    SDL_Rect rect;
-    rect.w = w;
-    rect.h = h;
-    rect.x = x;
-    rect.y = y;
-
-    SDL_FillRect(surface, &rect, colors_dark[COLOR_WHITE]);
-}
-
-SDL_Rect draw_trackbar(){
-    int w = 10;
-    int h = WINDOW_H / 4; // always %20
-    int x = WINDOW_W - PADDING - w;
-    int y = PADDING;
-
-    SDL_Rect trackbar = {x, y, w, h}; 
-
-    SDL_FillRect(surface, &trackbar, colors_dark[COLOR_PASTEL_BLUE]);
-    return trackbar;
-}
 void update_window(){
     SDL_UpdateWindowSurface(window);
-}
-void trackbar_hover(SDL_Rect* rect){
-    SDL_FillRect(surface, rect, colors_dark[COLOR_GRAY]);
-}
-
-void handle_scroll(){
-    
 }
 
 typedef void (*HoverHandler)(SDL_Rect*);
@@ -84,15 +55,54 @@ void handle_hover_rect(SDL_Rect* rect, HoverHandler handler){
     if(mouse_x > rect->x && mouse_x < rect->x + rect->w
     && mouse_y > rect->y && mouse_y < rect->y + rect->h
     ){
-        printf("Hover!");
         handler(rect);
     }
 }
 
+SDL_Rect draw_trackbar(){
+    int w = 10;
+    int h = WINDOW_H / 4; // always %20
+    int x = WINDOW_W - PADDING - w;
+    int y = PADDING;
+
+    SDL_Rect trackbar = {x, y, w, h}; 
+
+    SDL_FillRect(surface, &trackbar, colors_dark[COLOR_PASTEL_BLUE]);
+
+    return trackbar;
+}
+
+
+void trackbar_hover(SDL_Rect* rect){
+    SDL_FillRect(surface, rect, colors_dark[COLOR_GRAY]);
+}
+
+void list_entry_hover(SDL_Rect* rect){
+    SDL_FillRect(surface, rect, colors_dark[COLOR_PURPLE]);
+}
+///
+/// Draws entry
+///
+SDL_Rect draw_list_entry(int x, int y){
+    int w = WINDOW_W - 50;
+    int h = 50;
+    SDL_Rect rect;
+    rect.w = w;
+    rect.h = h;
+    rect.x = x;
+    rect.y = y;
+
+    SDL_FillRect(surface, &rect, colors_dark[COLOR_WHITE]);
+
+    handle_hover_rect(&rect, list_entry_hover);
+
+
+    return rect;
+}
 /// 
 /// Draws list for dir entries
 ///
-void draw_list(char** list){
+SDL_Rect draw_list(char** list){
     // declare widget 
     int border_size = 10;
     SDL_Rect list_widget;
@@ -119,16 +129,15 @@ void draw_list(char** list){
     }
 
 
-    // declare border
+    return list_widget;
 }
 
-void draw_background(){
+SDL_Rect draw_background(){
     SDL_Rect bg;
     bg.h = WINDOW_H;
     bg.w = WINDOW_W;
     bg.x = 0;
     bg.y = 0;
-    
 
     SDL_FillRect(surface, &bg, colors_dark[COLOR_WHITE]);
 }
@@ -137,48 +146,59 @@ char* change_dir(char* current_dir, char* new_dir){
     char* new_ptr = realloc(current_dir, strlen(new_dir)+ 1);
     return new_ptr;
 }
-
-void root(){
-    char* current_dir = malloc(strlen(".") + 1 );
-    strcpy(current_dir, ".");
-    char** list = list_dir_entries(current_dir);
-
+void init_sdl(){
     // Init sdl
     SDL_Init(SDL_INIT_VIDEO);
-    int running = 1;
+    running = 1;
 
     // Init window 
-    SDL_Window* window =  SDL_CreateWindow("silly file manager", 0, 0, WINDOW_W, WINDOW_H, SDL_WINDOW_OPENGL);
-
-    // Init Renderer
-    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
+    window =  SDL_CreateWindow("silly file manager", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_W, WINDOW_H, SDL_WINDOW_OPENGL);
     
-    SDL_Surface* surface = SDL_GetWindowSurface(window);
+    surface = SDL_GetWindowSurface(window);
+
+}
+void init_variables(){
+    // Init variables
 
     initialize_colors(surface);
 
-    draw_background();
-    draw_list(list);
-    SDL_Rect trackbar = draw_trackbar();
-
-    SDL_UpdateWindowSurface(window);
-
-    SDL_Event event;
-    while(running){
-        handle_hover_rect(&trackbar, trackbar_hover); 
-        while(SDL_PollEvent(&event))
-        if(event.type == SDL_QUIT){
-            running = 0;
-        }
-
-    }
+    current_dir = malloc(strlen(".") + 1 );
+    strcpy(current_dir, ".");
+    entries = list_dir_entries(current_dir);
+}
+void close_window(){
     // Exit 
     SDL_DestroyWindow(window);
     free(current_dir);
     // Free list
-    for (int i = 0; list[i] != NULL; i++) {
-        free(list[i]); // Correctly free each entry
+    for (int i = 0; entries[i] != NULL; i++) {
+        free(entries[i]); // Correctly free each entry
     }
-    free(list); // Finally, free the list itself
+    free(entries); // Finally, free the list itself
     SDL_Quit();
+} 
+
+void mainloop(){
+    SDL_Event event;
+
+
+    SDL_Rect background = draw_background();
+    
+
+    while(running){
+    SDL_Rect list_widget = draw_list(entries);
+    SDL_Rect trackbar = draw_trackbar();
+    handle_hover_rect(&trackbar, trackbar_hover); 
+        while(SDL_PollEvent(&event))
+            if(event.type == SDL_QUIT){
+                running = 0;
+            }
+        SDL_UpdateWindowSurface(window);
+    }
+}
+void root(){
+    init_sdl();
+    init_variables();
+    mainloop();
+    close_window();
 }
