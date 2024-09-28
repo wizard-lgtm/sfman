@@ -1,6 +1,17 @@
 #include<SDL2/SDL.h>
 
+/// 
+/// Draws entry
+///
+void draw_list_entry(){
 
+}
+/// 
+/// Draws list for dir entries
+///
+void draw_list(){
+
+}
 
 void root(){
 
